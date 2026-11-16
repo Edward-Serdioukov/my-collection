@@ -8,6 +8,7 @@ import {
   type ImportValidationSuccess,
 } from '../storage/importCollection'
 import { ImportModal } from '../components/ImportModal'
+import { filterItemsByTitle } from '../utils/search'
 
 export function CatalogView() {
   const { items, replaceCollection } = useCollection()
@@ -19,11 +20,8 @@ export function CatalogView() {
   // Check whether the shared collection itself is empty (not inferred from filtered results)
   const isCollectionEmpty = items.length === 0
 
-  // Derive filtered items from non-empty collection
-  const trimmedQuery = searchQuery.trim().toLowerCase()
-  const filteredItems = trimmedQuery
-    ? items.filter((item) => item.title.toLowerCase().includes(trimmedQuery))
-    : items
+  // Derive filtered items from non-empty collection using pure search rules
+  const filteredItems = filterItemsByTitle(items, searchQuery)
 
   const handleClearSearch = () => {
     setSearchQuery('')

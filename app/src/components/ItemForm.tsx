@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import type { FormEvent, KeyboardEvent, MouseEvent } from 'react'
 import type { CollectionItem } from '../types/item'
 import { ConfirmModal } from './ConfirmModal'
+import { validateItemForm } from '../utils/formValidation'
 import './ItemForm.css'
 
 interface ItemFormProps {
@@ -68,47 +69,27 @@ export function ItemForm({
       return
     }
 
-    let hasError = false
-    let currentNameError: string | null = null
-    let currentDescError: string | null = null
+    const validation = validateItemForm(name, description)
 
-    // Trim name before validation
-    const trimmedName = name.trim()
-    if (!trimmedName) {
-      currentNameError = 'Name is required.'
-      hasError = true
-    } else if (trimmedName.length > 100) {
-      currentNameError = 'Name cannot exceed 100 characters.'
-      hasError = true
-    }
+    setNameError(validation.nameError)
+    setDescriptionError(validation.descriptionError)
 
-    if (description.length > 2000) {
-      currentDescError = 'Description cannot exceed 2000 characters.'
-      hasError = true
-    }
-
-    setNameError(currentNameError)
-    setDescriptionError(currentDescError)
-
-    if (currentNameError) {
+    if (validation.nameError) {
       nameInputRef.current?.focus()
       return
     }
 
-    if (currentDescError) {
+    if (validation.descriptionError) {
       descriptionInputRef.current?.focus()
       return
     }
 
-    if (!hasError && onSave) {
+    if (validation.isValid && validation.normalizedData && onSave) {
       setIsSubmitting(true)
       setSubmitError(null)
 
       try {
-        await onSave({
-          title: trimmedName,
-          description: description.trim() || undefined,
-        })
+        await onSave(validation.normalizedData)
       } catch (err) {
         // On error:
         // - do not report success
