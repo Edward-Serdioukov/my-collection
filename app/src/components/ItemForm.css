@@ -233,3 +233,114 @@
   background-color: #f9fafb;
   border-color: #9ca3af;
 }
+
+/* Photo selection and preview styles */
+.form-photo-group {
+  margin-top: 4px;
+}
+
+.form-photo-empty-wrapper {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.form-photo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.form-photo-btn:hover:not(:disabled) {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.form-photo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-photo-camera-btn {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.form-photo-camera-btn:hover:not(:disabled) {
+  background-color: #dcfce7;
+  border-color: #86efac;
+}
+
+.form-photo-gallery-btn {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.form-photo-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.form-photo-preview-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-photo-preview {
+  max-width: 240px;
+  max-height: 240px;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.form-photo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.form-photo-action-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.form-photo-action-btn:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.form-photo-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-photo-remove-btn {
+  color: #b91c1c;
+  border-color: #fca5a5;
+  background-color: #fef2f2;
+}
+
+.form-photo-remove-btn:hover:not(:disabled) {
+  background-color: #fee2e2;
+  border-color: #f87171;
+}

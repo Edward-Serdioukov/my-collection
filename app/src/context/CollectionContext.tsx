@@ -4,6 +4,7 @@ import { DEMO_ITEMS } from '../data/demoItems'
 import { CollectionContext } from './CollectionContextDef'
 import { loadCollection, saveCollection } from '../storage/indexedDbAdapter'
 import { CollectionValidationError } from '../storage/validation'
+import { cleanupUnusedPhoto, isManagedPhotoUri } from '../storage/photoStorage'
 
 type StorageStatus = 'loading' | 'first_launch' | 'ready' | 'error'
 
@@ -164,6 +165,9 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
 
     setIsOperating(true)
     try {
+      const oldItem = items.find((item) => item.id === id)
+      const oldPhotoUri = oldItem?.image
+
       // 1. Prepare new state
       const nextCollection = items.map((item) => {
         if (item.id !== id) {
@@ -189,6 +193,12 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
 
       // 3. Update the shared collection only after successful writing
       setItems(nextCollection)
+
+      // 4. Delete the old photo only after the new reference has been saved successfully
+      // Checks that the file is not used by other items and does not delete bundled resources
+      if (oldPhotoUri && data.image !== undefined && data.image !== oldPhotoUri) {
+        await cleanupUnusedPhoto(oldPhotoUri, nextCollection)
+      }
     } finally {
       setIsOperating(false)
     }
@@ -201,6 +211,9 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
 
     setIsOperating(true)
     try {
+      const itemToDelete = items.find((item) => item.id === id)
+      const oldPhotoUri = itemToDelete?.image
+
       // 1. Prepare new state
       const nextCollection = items.filter((item) => item.id !== id)
 
@@ -209,6 +222,11 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
 
       // 3. Update the shared collection only after successful writing
       setItems(nextCollection)
+
+      // 4. Delete the photo only after the collection has been saved successfully
+      if (oldPhotoUri) {
+        await cleanupUnusedPhoto(oldPhotoUri, nextCollection)
+      }
     } finally {
       setIsOperating(false)
     }
@@ -221,12 +239,23 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
 
     setIsOperating(true)
     try {
-      // 1. Prepare new state (full replacement)
-      // 2. Wait for successful writing (with transaction completion)
+      // Collect managed photos from current items before replacement
+      const oldManagedPhotos = items
+        .map((it) => it.image)
+        .filter((img): img is string => Boolean(img && isManagedPhotoUri(img)))
+
+      // 1. Wait for successful writing to storage (full replacement transaction)
+      // If saving fails, execution jumps directly to finally: no current files are deleted
       await saveCollection(newItems)
 
-      // 3. Update the shared collection only after successful writing
+      // 2. Update the shared in-memory collection only after successful writing
       setItems(newItems)
+
+      // 3. Post-replacement cleanup: safely clean old managed files no longer referenced
+      // Guaranteed to run ONLY after successful data replacement
+      for (const oldPhoto of oldManagedPhotos) {
+        await cleanupUnusedPhoto(oldPhoto, newItems)
+      }
     } finally {
       setIsOperating(false)
     }

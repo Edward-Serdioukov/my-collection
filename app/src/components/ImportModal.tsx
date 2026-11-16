@@ -131,7 +131,9 @@ export function ImportModal({
           ) : null}
 
           <p className="import-photos-notice">
-            Note: Photos are not transferred in text imports. External image links (if any) are not verified.
+            {pendingImport.hasExcludedPhotos
+              ? 'Note: Image files are excluded from text imports. Unportable photo references in this file were omitted to prevent broken image links.'
+              : 'Note: Photos are not included in text export or import.'}
           </p>
 
           {replaceError ? (

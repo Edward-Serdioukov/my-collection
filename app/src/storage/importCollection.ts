@@ -1,5 +1,6 @@
 import type { CollectionItem } from '../types/item'
 import { CURRENT_SCHEMA_VERSION } from './indexedDbAdapter'
+import { isBundledPhoto } from './photoStorage'
 
 export const RECOGNIZED_ITEM_KEYS = [
   'id',
@@ -16,6 +17,7 @@ export interface ImportValidationSuccess {
   items: CollectionItem[]
   unsupportedFields: string[]
   itemCount: number
+  hasExcludedPhotos?: boolean
 }
 
 export interface ImportValidationFailure {
@@ -91,6 +93,7 @@ export function validateCollectionImport(jsonText: string): ImportValidationResu
   const seenIds = new Set<string>()
   const unsupportedFieldsSet = new Set<string>()
   const validatedItems: CollectionItem[] = []
+  let hasExcludedPhotos = false
   const now = Date.now()
 
   // 3. Validate entries and check ID uniqueness
@@ -160,10 +163,18 @@ export function validateCollectionImport(jsonText: string): ImportValidationResu
       }
     })
 
-    // Image handling: do not make network requests; external image links are not treated as verified photos
+    // Image handling: text import does not transfer user photos.
+    // To prevent misleading broken references to missing user files,
+    // only immutable bundled app resources are retained.
+    // Local device paths (managed:photos/, file://, content://, etc.) or external URLs are stripped.
     let image: string | undefined
     if (typeof itemObj.image === 'string' && itemObj.image.trim()) {
-      image = itemObj.image.trim()
+      const candidate = itemObj.image.trim()
+      if (isBundledPhoto(candidate)) {
+        image = candidate
+      } else {
+        hasExcludedPhotos = true
+      }
     }
 
     validatedItems.push({
@@ -182,5 +193,6 @@ export function validateCollectionImport(jsonText: string): ImportValidationResu
     items: validatedItems,
     unsupportedFields: Array.from(unsupportedFieldsSet),
     itemCount: validatedItems.length,
+    hasExcludedPhotos,
   }
 }

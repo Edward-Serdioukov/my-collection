@@ -5,6 +5,7 @@ export interface CollectionExportData {
   schemaVersion: number
   exportedAt: string
   itemCount: number
+  note?: string
   items: Array<{
     id: string
     title: string
@@ -17,13 +18,14 @@ export interface CollectionExportData {
 /**
  * Prepares the collection data for export.
  * Preserves stable ids, creation and modification timestamps, and schemaVersion.
- * Photos are excluded as this is a text-based JSON export.
+ * Photos are excluded as this is a text-based JSON export. Local device paths are omitted.
  */
 export function formatCollectionExport(items: CollectionItem[]): CollectionExportData {
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
     itemCount: items.length,
+    note: 'Text export only. Image files are excluded.',
     items: items.map((item) => ({
       id: item.id,
       title: item.title,

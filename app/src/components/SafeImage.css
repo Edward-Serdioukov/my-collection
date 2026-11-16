@@ -1,0 +1,39 @@
+.safe-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  gap: 6px;
+  user-select: none;
+}
+
+.safe-image-icon {
+  width: 32px;
+  height: 32px;
+  opacity: 0.8;
+}
+
+.safe-image-placeholder-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.safe-image-unavailable {
+  background-color: #fef2f2;
+  color: #ef4444;
+  border: 1px dashed #fca5a5;
+}
+
+.safe-image-unavailable .safe-image-placeholder-text {
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.safe-image-unavailable-icon {
+  color: #dc2626;
+}

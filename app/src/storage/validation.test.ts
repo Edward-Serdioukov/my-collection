@@ -171,17 +171,97 @@ describe('Imported data schema validation (validateCollectionImport)', () => {
     }
   })
 
-  it('preserves IDs, dates, and schemaVersion in export formatting', () => {
+  it('preserves IDs, dates, and schemaVersion in export formatting and excludes local photo paths', () => {
     const exportResult = formatCollectionExport([
-      { id: 'item-1', title: 'Watch', createdAt: 1234, updatedAt: 5678 },
+      {
+        id: 'item-1',
+        title: 'Watch',
+        description: 'Mechanical',
+        image: 'managed:photos/device_local_photo.jpg',
+        createdAt: 1234,
+        updatedAt: 5678,
+      },
     ])
     expect(exportResult.schemaVersion).toBe(1)
+    expect(exportResult.note).toBe('Text export only. Image files are excluded.')
     expect(exportResult.items[0]).toEqual({
       id: 'item-1',
       title: 'Watch',
-      description: undefined,
+      description: 'Mechanical',
       createdAt: 1234,
       updatedAt: 5678,
     })
+    // Ensure local device path is completely omitted
+    expect((exportResult.items[0] as Record<string, unknown>).image).toBeUndefined()
+  })
+
+  it('safely imports previous exports (schemaVersion 1 without image or note)', () => {
+    // Exact structure produced by previous version before photo support
+    const previousExportJson = JSON.stringify({
+      schemaVersion: 1,
+      exportedAt: '2026-01-01T00:00:00.000Z',
+      itemCount: 1,
+      items: [
+        {
+          id: 'prev-1',
+          title: 'Antique Clock',
+          description: 'Working pendulum',
+          createdAt: 1700000000000,
+          updatedAt: 1700000000000,
+        },
+      ],
+    })
+
+    const result = validateCollectionImport(previousExportJson)
+    expect(result.valid).toBe(true)
+    if (result.valid) {
+      expect(result.items).toHaveLength(1)
+      expect(result.items[0].id).toBe('prev-1')
+      expect(result.items[0].title).toBe('Antique Clock')
+      expect(result.items[0].description).toBe('Working pendulum')
+      expect(result.items[0].image).toBeUndefined()
+      expect(result.unsupportedFields).toEqual([])
+      expect(result.hasExcludedPhotos).toBe(false)
+    }
+  })
+
+  it('strips misleading local and external user photo paths during import to prevent broken references', () => {
+    const craftedImportJson = JSON.stringify({
+      schemaVersion: 1,
+      items: [
+        {
+          id: 'item-local',
+          title: 'Camera',
+          image: 'managed:photos/non_existent.jpg',
+        },
+        {
+          id: 'item-abs',
+          title: 'Laptop',
+          image: '/data/user/0/com.app/photos/pic.jpg',
+        },
+        {
+          id: 'item-external',
+          title: 'Phone',
+          image: 'https://example.com/unverified.jpg',
+        },
+        {
+          id: 'item-bundled',
+          title: 'Bundled Sample',
+          image: '/images/demo-item.jpg',
+        },
+      ],
+    })
+
+    const result = validateCollectionImport(craftedImportJson)
+    expect(result.valid).toBe(true)
+    if (result.valid) {
+      expect(result.hasExcludedPhotos).toBe(true)
+      // Local/external paths are stripped
+      expect(result.items[0].image).toBeUndefined()
+      expect(result.items[1].image).toBeUndefined()
+      expect(result.items[2].image).toBeUndefined()
+      // Bundled asset path is preserved
+      expect(result.items[3].image).toBe('/images/demo-item.jpg')
+    }
   })
 })

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useCollection } from '../context/useCollection'
 import { ConfirmModal } from '../components/ConfirmModal'
+import { SafeImage } from '../components/SafeImage'
 import './ItemDetailView.css'
 
 export function ItemDetailView() {
@@ -80,29 +81,12 @@ export function ItemDetailView() {
       <main className="detail-main">
         <article className="detail-card">
           <div className="detail-image-area">
-            {item.image ? (
-              <img
-                src={item.image}
-                alt={item.title}
-                className="detail-image"
-              />
-            ) : (
-              <div className="detail-placeholder" aria-label="Image placeholder">
-                <svg
-                  className="detail-placeholder-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  aria-hidden="true"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <polyline points="21 15 16 10 5 21" />
-                </svg>
-                <span className="detail-placeholder-text">No image</span>
-              </div>
-            )}
+            <SafeImage
+              src={item.image}
+              alt={item.title}
+              className="detail-image"
+              placeholderText="No image"
+            />
           </div>
 
           <div className="detail-content">
