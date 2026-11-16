@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { CollectionItem } from '../types/item'
 import './ItemCard.css'
 
@@ -7,7 +8,7 @@ interface ItemCardProps {
 
 export function ItemCard({ item }: ItemCardProps) {
   return (
-    <article className="item-card">
+    <Link to={`/items/${item.id}`} className="item-card">
       <div className="item-card-image-area">
         {item.image ? (
           <img
@@ -39,6 +40,6 @@ export function ItemCard({ item }: ItemCardProps) {
           <p className="item-card-description">{item.description}</p>
         ) : null}
       </div>
-    </article>
+    </Link>
   )
 }

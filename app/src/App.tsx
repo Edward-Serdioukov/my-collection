@@ -1,23 +1,20 @@
-import { DEMO_ITEMS } from './data/demoItems'
-import { ItemCard } from './components/ItemCard'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { CatalogView } from './views/CatalogView'
+import { ItemDetailView } from './views/ItemDetailView'
+import { ItemEditView } from './views/ItemEditView'
+import { ItemNewView } from './views/ItemNewView'
 import './App.css'
 
 function App() {
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1 className="app-heading">My Collection</h1>
-        <p className="app-caption">Demo collection</p>
-      </header>
-
-      <main className="catalog-main">
-        <div className="catalog-grid">
-          {DEMO_ITEMS.map((item) => (
-            <ItemCard key={item.id} item={item} />
-          ))}
-        </div>
-      </main>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<CatalogView />} />
+        <Route path="/items/new" element={<ItemNewView />} />
+        <Route path="/items/:id" element={<ItemDetailView />} />
+        <Route path="/items/:id/edit" element={<ItemEditView />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

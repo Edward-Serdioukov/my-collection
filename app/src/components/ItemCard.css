@@ -5,8 +5,15 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  cursor: default;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
   min-width: 0;
+}
+
+.item-card:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
 }
 
 .item-card-image-area {
