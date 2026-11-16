@@ -3,4 +3,6 @@ export interface CollectionItem {
   title: string
   description?: string
   image?: string
+  createdAt?: number
+  updatedAt?: number
 }

@@ -1,10 +1,18 @@
-import { Link, useParams } from 'react-router-dom'
-import { DEMO_ITEMS } from '../data/demoItems'
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useCollection } from '../context/useCollection'
+import { ConfirmModal } from '../components/ConfirmModal'
 import './ItemDetailView.css'
 
 export function ItemDetailView() {
   const { id } = useParams<{ id: string }>()
-  const item = DEMO_ITEMS.find((it) => it.id === id)
+  const navigate = useNavigate()
+  const { getItem, deleteItem } = useCollection()
+  const item = id ? getItem(id) : undefined
+
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false)
+  const [isDeleting, setIsDeleting] = useState<boolean>(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   if (!item) {
     return (
@@ -31,6 +39,34 @@ export function ItemDetailView() {
         </main>
       </div>
     )
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (isDeleting) return
+
+    setIsDeleting(true)
+    setDeleteError(null)
+
+    try {
+      // 1. Prepare new state (inside deleteItem)
+      // 2. Wait for successful writing with transaction completion (inside deleteItem)
+      // 3. Update the shared collection (inside deleteItem)
+      // 4. Navigate to catalog on success
+      await deleteItem(item.id)
+      setShowDeleteModal(false)
+      navigate('/')
+    } catch (err) {
+      // On error:
+      // - do not report success
+      // - do not close the detail view or modal
+      // - preserve the previous collection
+      // - offer retry
+      const msg =
+        err instanceof Error ? err.message : 'Failed to delete item. Please try again.'
+      setDeleteError(msg)
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -82,10 +118,34 @@ export function ItemDetailView() {
               <Link to={`/items/${item.id}/edit`} className="detail-link-btn detail-link-btn-edit">
                 Edit
               </Link>
+              <button
+                type="button"
+                className="detail-link-btn detail-link-btn-delete"
+                onClick={() => setShowDeleteModal(true)}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </article>
       </main>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete item"
+        message={`Are you sure you want to delete "${item.title}"?`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        isLoading={isDeleting}
+        errorMessage={deleteError}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => {
+          if (!isDeleting) {
+            setShowDeleteModal(false)
+            setDeleteError(null)
+          }
+        }}
+      />
     </div>
   )
 }

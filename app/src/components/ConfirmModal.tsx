@@ -8,6 +8,8 @@ interface ConfirmModalProps {
   message: string
   confirmLabel?: string
   cancelLabel?: string
+  isLoading?: boolean
+  errorMessage?: string | null
   onConfirm: () => void
   onCancel: () => void
 }
@@ -18,6 +20,8 @@ export function ConfirmModal({
   message,
   confirmLabel = 'Leave without saving',
   cancelLabel = 'Stay',
+  isLoading = false,
+  errorMessage,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -96,12 +100,18 @@ export function ConfirmModal({
         <p id="modal-message" className="modal-message">
           {message}
         </p>
+        {errorMessage ? (
+          <p className="modal-error-message" role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
 
         <div className="modal-actions">
           <button
             ref={cancelBtnRef}
             type="button"
             className="modal-btn modal-btn-cancel"
+            disabled={isLoading}
             onClick={onCancel}
           >
             {cancelLabel}
@@ -110,9 +120,10 @@ export function ConfirmModal({
             ref={confirmBtnRef}
             type="button"
             className="modal-btn modal-btn-confirm"
+            disabled={isLoading}
             onClick={onConfirm}
           >
-            {confirmLabel}
+            {isLoading ? 'Processing...' : confirmLabel}
           </button>
         </div>
       </div>

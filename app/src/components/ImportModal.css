@@ -1,0 +1,128 @@
+.import-modal-dialog {
+  max-width: 500px;
+}
+
+.import-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.import-modal-warning {
+  margin: 0;
+  font-size: 14px;
+  color: #b91c1c;
+  line-height: 1.4;
+}
+
+.import-counts-card {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.import-count-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.import-count-label {
+  color: #4b5563;
+}
+
+.import-count-value {
+  font-weight: 700;
+  color: #111827;
+}
+
+.import-count-new {
+  color: #0284c7;
+}
+
+.import-export-suggestion {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.import-suggestion-text {
+  margin: 0;
+  font-size: 13px;
+  color: #1e40af;
+  line-height: 1.4;
+}
+
+.import-export-btn {
+  align-self: flex-start;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e40af;
+  background-color: #ffffff;
+  border: 1px solid #93c5fd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s;
+}
+
+.import-export-btn:hover {
+  background-color: #dbeafe;
+}
+
+.import-export-btn:focus-visible {
+  outline: 2px solid #1e40af;
+  outline-offset: 2px;
+}
+
+.import-unsupported-fields-card {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.import-unsupported-title {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.import-unsupported-desc {
+  margin: 0;
+  font-size: 12px;
+  color: #b45309;
+  line-height: 1.4;
+}
+
+.import-photos-notice {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.import-error-banner {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.import-error-text {
+  margin: 0;
+  font-size: 13px;
+  color: #dc2626;
+  line-height: 1.4;
+}

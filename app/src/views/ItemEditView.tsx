@@ -1,12 +1,13 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { DEMO_ITEMS } from '../data/demoItems'
+import { useCollection } from '../context/useCollection'
 import { ItemForm } from '../components/ItemForm'
 import './ItemDetailView.css'
 
 export function ItemEditView() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const item = DEMO_ITEMS.find((it) => it.id === id)
+  const { getItem, updateItem } = useCollection()
+  const item = id ? getItem(id) : undefined
 
   if (!item) {
     return (
@@ -35,6 +36,15 @@ export function ItemEditView() {
     )
   }
 
+  const handleSave = async (data: { title: string; description?: string }) => {
+    // 1. Prepare new state (inside updateItem)
+    // 2. Wait for successful writing with transaction completion (inside updateItem)
+    // 3. Update the shared collection (inside updateItem)
+    // 4. Navigate to details on success
+    await updateItem(item.id, data)
+    navigate(`/items/${item.id}`)
+  }
+
   return (
     <div className="app-container">
       <main className="detail-main">
@@ -43,6 +53,7 @@ export function ItemEditView() {
           initialItem={item}
           backLabel="← Back to details"
           onCancel={() => navigate(`/items/${item.id}`)}
+          onSave={handleSave}
         />
       </main>
     </div>

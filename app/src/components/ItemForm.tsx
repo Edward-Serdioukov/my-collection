@@ -8,10 +8,17 @@ interface ItemFormProps {
   mode: 'add' | 'edit'
   initialItem?: CollectionItem
   onCancel: () => void
+  onSave?: (data: { title: string; description?: string }) => Promise<void> | void
   backLabel?: string
 }
 
-export function ItemForm({ mode, initialItem, onCancel, backLabel }: ItemFormProps) {
+export function ItemForm({
+  mode,
+  initialItem,
+  onCancel,
+  onSave,
+  backLabel,
+}: ItemFormProps) {
   const initialName = mode === 'edit' && initialItem ? initialItem.title : ''
   const initialDescription =
     mode === 'edit' && initialItem?.description ? initialItem.description : ''
@@ -20,8 +27,9 @@ export function ItemForm({ mode, initialItem, onCancel, backLabel }: ItemFormPro
   const [description, setDescription] = useState<string>(initialDescription)
   const [nameError, setNameError] = useState<string | null>(null)
   const [descriptionError, setDescriptionError] = useState<string | null>(null)
-  const [validFeedback, setValidFeedback] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
   const nameInputRef = useRef<HTMLInputElement>(null)
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null)
@@ -34,7 +42,7 @@ export function ItemForm({ mode, initialItem, onCancel, backLabel }: ItemFormPro
       e.preventDefault()
     }
 
-    if (isDirty) {
+    if (isDirty && !isSubmitting) {
       setShowConfirmModal(true)
     } else {
       onCancel()
@@ -50,17 +58,21 @@ export function ItemForm({ mode, initialItem, onCancel, backLabel }: ItemFormPro
     setShowConfirmModal(false)
   }
 
-  const handleValidate = (e?: FormEvent) => {
+  const handleSubmit = async (e?: FormEvent) => {
     if (e) {
       e.preventDefault()
     }
 
-    setValidFeedback(null)
+    // Prevent duplicate submissions when submitted repeatedly
+    if (isSubmitting) {
+      return
+    }
 
     let hasError = false
     let currentNameError: string | null = null
     let currentDescError: string | null = null
 
+    // Trim name before validation
     const trimmedName = name.trim()
     if (!trimmedName) {
       currentNameError = 'Name is required.'
@@ -80,24 +92,52 @@ export function ItemForm({ mode, initialItem, onCancel, backLabel }: ItemFormPro
 
     if (currentNameError) {
       nameInputRef.current?.focus()
-    } else if (currentDescError) {
-      descriptionInputRef.current?.focus()
+      return
     }
 
-    if (!hasError) {
-      setValidFeedback('The data is valid.\nWe will add saving in the next step.')
+    if (currentDescError) {
+      descriptionInputRef.current?.focus()
+      return
+    }
+
+    if (!hasError && onSave) {
+      setIsSubmitting(true)
+      setSubmitError(null)
+
+      try {
+        await onSave({
+          title: trimmedName,
+          description: description.trim() || undefined,
+        })
+      } catch (err) {
+        // On error:
+        // - do not report success
+        // - do not close the form
+        // - do not lose entered text
+        // - offer retry
+        const msg =
+          err instanceof Error ? err.message : 'Failed to save item. Please try again.'
+        setSubmitError(msg)
+        setIsSubmitting(false)
+      }
     }
   }
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && (e.currentTarget.tagName === 'INPUT' || e.metaKey || e.ctrlKey)) {
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (
+      e.key === 'Enter' &&
+      (e.currentTarget.tagName === 'INPUT' || e.metaKey || e.ctrlKey)
+    ) {
       e.preventDefault()
-      handleValidate()
+      handleSubmit()
     }
   }
 
   const headingText = mode === 'add' ? 'Add item.' : 'Edit item.'
-  const navBackText = backLabel || (mode === 'add' ? '← Back to catalog' : '← Back to details')
+  const navBackText =
+    backLabel || (mode === 'add' ? '← Back to catalog' : '← Back to details')
 
   return (
     <>
@@ -110,12 +150,9 @@ export function ItemForm({ mode, initialItem, onCancel, backLabel }: ItemFormPro
       <div className="item-form-card">
         <header className="item-form-header">
           <h1 className="item-form-heading">{headingText}</h1>
-          <p className="item-form-learning-notice">
-            Learning mode: changes are not saved yet.
-          </p>
         </header>
 
-        <form className="item-form-body" onSubmit={handleValidate} noValidate>
+        <form className="item-form-body" onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label htmlFor="item-name-input" className="form-label">
               <span>
@@ -131,12 +168,13 @@ export function ItemForm({ mode, initialItem, onCancel, backLabel }: ItemFormPro
               placeholder="e.g., Antique Brass Compass"
               maxLength={100}
               value={name}
+              disabled={isSubmitting}
               aria-invalid={nameError ? 'true' : 'false'}
               aria-describedby={nameError ? 'item-name-error' : undefined}
               onChange={(e) => {
                 setName(e.target.value)
                 if (nameError) setNameError(null)
-                if (validFeedback) setValidFeedback(null)
+                if (submitError) setSubmitError(null)
               }}
               onKeyDown={handleKeyDown}
             />
@@ -159,39 +197,59 @@ export function ItemForm({ mode, initialItem, onCancel, backLabel }: ItemFormPro
               placeholder="Enter detailed description of the item..."
               maxLength={2000}
               value={description}
+              disabled={isSubmitting}
               aria-invalid={descriptionError ? 'true' : 'false'}
-              aria-describedby={descriptionError ? 'item-description-error' : undefined}
+              aria-describedby={
+                descriptionError ? 'item-description-error' : undefined
+              }
               onChange={(e) => {
                 setDescription(e.target.value)
                 if (descriptionError) setDescriptionError(null)
-                if (validFeedback) setValidFeedback(null)
+                if (submitError) setSubmitError(null)
               }}
               onKeyDown={handleKeyDown}
             />
             {descriptionError ? (
-              <p id="item-description-error" className="form-error-message" role="alert">
+              <p
+                id="item-description-error"
+                className="form-error-message"
+                role="alert"
+              >
                 {descriptionError}
               </p>
             ) : null}
           </div>
 
-          {validFeedback ? (
-            <div className="form-validation-status status-success" role="status">
-              {validFeedback.split('\n').map((line, idx) => (
-                <p key={idx} className="status-line">
-                  {line}
-                </p>
-              ))}
+          {submitError ? (
+            <div className="form-submit-error-banner" role="alert">
+              <span className="form-submit-error-icon" aria-hidden="true">
+                !
+              </span>
+              <div className="form-submit-error-content">
+                <p className="form-submit-error-message">{submitError}</p>
+                <button
+                  type="button"
+                  className="form-submit-retry-btn"
+                  onClick={() => handleSubmit()}
+                >
+                  Retry
+                </button>
+              </div>
             </div>
           ) : null}
 
           <div className="item-form-actions">
-            <button type="submit" className="form-btn form-btn-validate">
-              Validate data
+            <button
+              type="submit"
+              className="form-btn form-btn-validate"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : 'Save'}
             </button>
             <button
               type="button"
               className="form-btn form-btn-cancel"
+              disabled={isSubmitting}
               onClick={handleLeaveRequest}
             >
               Cancel
